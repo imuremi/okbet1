@@ -15,12 +15,66 @@
     "ios": {
       "usesAppleSignIn": true,
       "supportsTablet": true,
-      "bundleIdentifier": "dev.privy.example",
-      "associatedDomains": ["webcredentials:<your-associated-domain>"],
+      "bundleIdentifier": "com.imuremi.Exponent",
+      "associatedDomains": ["webcredentials:privy.io"],
       "infoPlist": {
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true
-        }
+        },
+        "LSApplicationQueriesSchemes": [
+          "metamask",
+          "trust",
+          "safe",
+          "rainbow",
+          "uniswap",
+          "coinbase",
+          "phantom",
+          "okx",
+          "bitget",
+          "bybit",
+          "kucoin",
+          "binance",
+          "gate",
+          "huobi",
+          "kraken",
+          "ledger",
+          "argent",
+          "imtoken",
+          "tokenpocket",
+          "bitpie",
+          "crypto.com",
+          "exodus",
+          "atomic",
+          "jaxx",
+          "coinomi",
+          "edge",
+          "bread",
+          "mycelium",
+          "samourai",
+          "wasabi",
+          "electrum",
+          "bluewallet",
+          "casa",
+          "specter",
+          "sparrow",
+          "bitbox",
+          "coldcard",
+          "trezor",
+          "keepkey",
+          "bitgo",
+          "blockstream",
+          "green",
+          "bitcoin-core",
+          "btcpayserver",
+          "opendime",
+          "foundation",
+          "shiftcrypto",
+          "coinkite",
+          "opendime",
+          "foundation",
+          "shiftcrypto",
+          "coinkite"
+        ]
       }
     },
     "android": {
@@ -28,12 +82,12 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "dev.privy.example"
+      "package": "com.imuremi.Exponent"
     },
     "extra": {
-      "privyAppId": "<your-privy-app-id>",
-      "privyClientId": "<your-privy-app-client-id>",
-      "passkeyAssociatedDomain": "https://<your-associated-domain>"
+      "privyAppId": "cme07wjng00rmkw0cw1fltj86",
+      "privyClientId": "client-WY6Pd7SRKLDDYdDHBroutBYcUuTPpvzkhUhZ2WRiDYZFF",
+      "passkeyAssociatedDomain": "https://privy.io"
     },
     "plugins": [
       "expo-router",

@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { Text, TextInput, View, Button, ScrollView } from "react-native";
+import { Text, TextInput, View, Button, ScrollView, StyleSheet } from "react-native";
 
 import {
   usePrivy,
@@ -11,6 +11,7 @@ import {
 import Constants from "expo-constants";
 import { useLinkWithPasskey } from "@privy-io/expo/passkey";
 import { PrivyUser } from "@privy-io/public-api";
+import { AppKitButton } from "@reown/appkit-wagmi-react-native";
 
 const toMainIdentifier = (x: PrivyUser["linked_accounts"][number]) => {
   if (x.type === "phone") {
@@ -78,118 +79,267 @@ export const UserScreen = () => {
   }
 
   return (
-    <View>
-      <Button
-        title="Link Passkey"
-        onPress={() =>
-          linkWithPasskey({
-            relyingParty: Constants.expoConfig?.extra?.passkeyAssociatedDomain,
-          })
-        }
-      />
-      <View style={{ display: "flex", flexDirection: "column", margin: 10 }}>
-        {(["github", "google", "discord", "apple"] as const).map((provider) => (
-          <View key={provider}>
-            <Button
-              title={`Link ${provider}`}
-              disabled={oauth.state.status === "loading"}
-              onPress={() => oauth.link({ provider })}
-            ></Button>
-          </View>
-        ))}
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.title}>Profile</Text>
+        <Text style={styles.subtitle}>Manage your account</Text>
       </View>
 
-      <ScrollView style={{ borderColor: "rgba(0,0,0,0.1)", borderWidth: 1 }}>
-        <View
-          style={{
-            padding: 20,
-            display: "flex",
-            flexDirection: "column",
-            gap: 10,
-          }}
-        >
-          <View>
-            <Text style={{ fontWeight: "bold" }}>User ID</Text>
-            <Text>{user.id}</Text>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* User Info */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Account</Text>
+          <View style={styles.card}>
+            <Text style={styles.label}>User ID</Text>
+            <Text style={styles.value}>{user.id}</Text>
           </View>
+        </View>
 
-          <View>
-            <Text style={{ fontWeight: "bold" }}>Linked accounts</Text>
-            {user?.linked_accounts.length ? (
-              <View style={{ display: "flex", flexDirection: "column" }}>
-                {user?.linked_accounts?.map((m, index) => (
-                  <Text
-                    key={`linked-account-${m.type}-${m.verified_at}-${index}`}
-                    style={{
-                      color: "rgba(0,0,0,0.5)",
-                      fontSize: 12,
-                      fontStyle: "italic",
-                    }}
-                  >
-                    {m.type}: {toMainIdentifier(m)}
-                  </Text>
-                ))}
-              </View>
-            ) : null}
-          </View>
+        {/* Linked Accounts */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Linked Accounts</Text>
+          {user?.linked_accounts.length ? (
+            <View style={styles.card}>
+              {user?.linked_accounts?.map((m, index) => (
+                <View key={`linked-account-${m.type}-${m.verified_at}-${index}`} style={styles.accountItem}>
+                  <Text style={styles.accountType}>{m.type}</Text>
+                  <Text style={styles.accountValue}>{toMainIdentifier(m)}</Text>
+                </View>
+              ))}
+            </View>
+          ) : (
+            <View style={styles.card}>
+              <Text style={styles.emptyText}>No linked accounts</Text>
+            </View>
+          )}
+        </View>
 
-          <View>
-            {account?.address && (
+        {/* Wallet Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Wallet</Text>
+          <View style={styles.card}>
+            {account?.address ? (
               <>
-                <Text style={{ fontWeight: "bold" }}>Embedded Wallet</Text>
-                <Text>{account?.address}</Text>
+                <Text style={styles.label}>Embedded Wallet</Text>
+                <Text style={styles.value}>{account?.address}</Text>
               </>
+            ) : (
+              <Text style={styles.emptyText}>No wallet created</Text>
             )}
-
-            <Button title="Create Wallet" onPress={() => create()} />
-
-            <>
-              <Text>Chain ID to set to:</Text>
-              <TextInput
-                value={chainId}
-                onChangeText={setChainId}
-                placeholder="Chain Id"
-              />
-              <Button
-                title="Switch Chain"
-                onPress={async () =>
-                  switchChain(await wallets[0].getProvider(), chainId)
-                }
-              />
-            </>
+            <Button title="Create Wallet" onPress={() => create()} color="#676FFF" />
           </View>
+        </View>
 
-          <View style={{ display: "flex", flexDirection: "column" }}>
-            <Button
-              title="Sign Message"
-              onPress={async () => signMessage(await wallets[0].getProvider())}
-            />
-
-            <Text>Messages signed:</Text>
-            {signedMessages.map((m) => (
-              <React.Fragment key={m}>
-                <Text
-                  style={{
-                    color: "rgba(0,0,0,0.5)",
-                    fontSize: 12,
-                    fontStyle: "italic",
-                  }}
-                >
-                  {m}
-                </Text>
-                <View
-                  style={{
-                    marginVertical: 5,
-                    borderBottomWidth: 1,
-                    borderBottomColor: "rgba(0,0,0,0.2)",
-                  }}
+        {/* Wallet Actions */}
+        {account?.address && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Wallet Actions</Text>
+            <View style={styles.card}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Chain ID</Text>
+                <TextInput
+                  value={chainId}
+                  onChangeText={setChainId}
+                  placeholder="Enter chain ID"
+                  style={styles.input}
                 />
-              </React.Fragment>
-            ))}
+              </View>
+              <View style={styles.buttonGroup}>
+                <Button
+                  title="Switch Chain"
+                  onPress={async () =>
+                    switchChain(await wallets[0].getProvider(), chainId)
+                  }
+                  color="#676FFF"
+                />
+                <Button
+                  title="Sign Message"
+                  onPress={async () => signMessage(await wallets[0].getProvider())}
+                  color="#676FFF"
+                />
+              </View>
+            </View>
           </View>
-          <Button title="Logout" onPress={logout} />
+        )}
+
+        {/* Signed Messages */}
+        {signedMessages.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Signed Messages</Text>
+            <View style={styles.card}>
+              {signedMessages.map((m, index) => (
+                <View key={index} style={styles.messageItem}>
+                  <Text style={styles.messageText}>{m}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Connect External Wallet */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Connect External Wallet</Text>
+          <View style={styles.card}>
+            <AppKitButton />
+          </View>
+        </View>
+
+        {/* Link Accounts */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Link Accounts</Text>
+          <View style={styles.card}>
+            <Button
+              title="Link Passkey"
+              onPress={() =>
+                linkWithPasskey({
+                  relyingParty: Constants.expoConfig?.extra?.passkeyAssociatedDomain,
+                })
+              }
+              color="#676FFF"
+            />
+            <View style={styles.socialButtons}>
+              {(["github", "google", "discord", "apple"] as const).map((provider) => (
+                <View key={provider} style={styles.socialButton}>
+                  <Button
+                    title={`Link ${provider.charAt(0).toUpperCase() + provider.slice(1)}`}
+                    disabled={oauth.state.status === "loading"}
+                    onPress={() => oauth.link({ provider })}
+                    color="#676FFF"
+                  />
+                </View>
+              ))}
+            </View>
+          </View>
+        </View>
+
+        {/* Logout */}
+        <View style={styles.section}>
+          <Button title="Sign Out" onPress={logout} color="#dc3545" />
         </View>
       </ScrollView>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+  },
+  header: {
+    paddingHorizontal: 24,
+    paddingTop: 60,
+    paddingBottom: 24,
+    backgroundColor: '#f8f9fa',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666666',
+  },
+  scrollView: {
+    flex: 1,
+    paddingHorizontal: 24,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 12,
+  },
+  card: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#666666',
+    marginBottom: 4,
+  },
+  value: {
+    fontSize: 16,
+    color: '#1a1a1a',
+    fontFamily: 'monospace',
+    marginBottom: 12,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: '#999999',
+    fontStyle: 'italic',
+    textAlign: 'center',
+  },
+  accountItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  accountType: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#1a1a1a',
+    textTransform: 'capitalize',
+  },
+  accountValue: {
+    fontSize: 12,
+    color: '#666666',
+    fontFamily: 'monospace',
+    flex: 1,
+    textAlign: 'right',
+    marginLeft: 8,
+  },
+  inputGroup: {
+    marginBottom: 16,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    backgroundColor: '#f8f9fa',
+  },
+  buttonGroup: {
+    gap: 12,
+  },
+  messageItem: {
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  messageText: {
+    fontSize: 12,
+    color: '#666666',
+    fontFamily: 'monospace',
+  },
+  socialButtons: {
+    marginTop: 12,
+    gap: 8,
+  },
+  socialButton: {
+    marginBottom: 4,
+  },
+});
