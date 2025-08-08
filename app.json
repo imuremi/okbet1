@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "@privy-io/expo-starter",
-    "slug": "expo-starter",
+    "name": "OkBet",
+    "slug": "okbet-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -15,7 +15,7 @@
     "ios": {
       "usesAppleSignIn": true,
       "supportsTablet": true,
-      "bundleIdentifier": "com.imuremi.Exponent",
+      "bundleIdentifier": "com.imuremi.okbet",
       "associatedDomains": ["webcredentials:privy.io"],
       "infoPlist": {
         "NSAppTransportSecurity": {
@@ -82,7 +82,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.imuremi.Exponent"
+      "package": "com.imuremi.okbet"
     },
     "extra": {
       "privyAppId": "cme07wjng00rmkw0cw1fltj86",

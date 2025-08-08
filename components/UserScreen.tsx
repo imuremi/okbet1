@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { Text, TextInput, View, Button, ScrollView, StyleSheet } from "react-native";
+import { Text, TextInput, View, Button, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 
 import {
   usePrivy,
@@ -115,19 +115,31 @@ export const UserScreen = () => {
           )}
         </View>
 
-        {/* Wallet Section */}
+        {/* Wallet Info */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Wallet</Text>
+          <Text style={styles.sectionTitle}>Embedded Wallet</Text>
           <View style={styles.card}>
-            {account?.address ? (
+            {account ? (
               <>
-                <Text style={styles.label}>Embedded Wallet</Text>
-                <Text style={styles.value}>{account?.address}</Text>
+                <Text style={styles.label}>Wallet Address</Text>
+                <Text style={styles.value}>{account.address}</Text>
+                <Text style={styles.label}>Chain ID</Text>
+                <Text style={styles.value}>{account.chain_id}</Text>
               </>
             ) : (
-              <Text style={styles.emptyText}>No wallet created</Text>
+              <>
+                <Text style={styles.emptyText}>No embedded wallet found</Text>
+                <TouchableOpacity 
+                  style={styles.primaryButton}
+                  onPress={() => {
+                    console.log("Creating embedded wallet...");
+                    create();
+                  }}
+                >
+                  <Text style={styles.primaryButtonText}>Create Embedded Wallet</Text>
+                </TouchableOpacity>
+              </>
             )}
-            <Button title="Create Wallet" onPress={() => create()} color="#676FFF" />
           </View>
         </View>
 
@@ -341,5 +353,17 @@ const styles = StyleSheet.create({
   },
   socialButton: {
     marginBottom: 4,
+  },
+  primaryButton: {
+    backgroundColor: '#676FFF',
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  primaryButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

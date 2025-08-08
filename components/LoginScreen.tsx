@@ -1,16 +1,18 @@
 import { Button, Linking, Text, View, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
-import { LoginWithOAuthInput, useLoginWithOAuth } from "@privy-io/expo";
 import { useLogin } from "@privy-io/expo/ui";
 import { useLoginWithPasskey } from "@privy-io/expo/passkey";
 import Constants from "expo-constants";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import * as Application from "expo-application";
 import { useAppKit } from "@reown/appkit-wagmi-react-native";
+import * as AppleAuthentication from 'expo-apple-authentication';
+import { useRouter } from 'expo-router';
 
 export default function LoginScreen() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { open } = useAppKit();
+  const router = useRouter();
   
   const { loginWithPasskey } = useLoginWithPasskey({
     onError: (err) => {
@@ -25,18 +27,7 @@ export default function LoginScreen() {
   });
   
   const { login } = useLogin();
-  const oauth = useLoginWithOAuth({
-    onError: (err) => {
-      console.log("OAuth login error:", err);
-      setError(`OAuth error: ${err.message || JSON.stringify(err)}`);
-      setIsLoading(false);
-    },
-    onSuccess: () => {
-      console.log("OAuth login successful");
-      setIsLoading(false);
-    },
-  });
-  
+
   const handleLoginWithPrivyUI = async () => {
     setIsLoading(true);
     setError("");
@@ -51,10 +42,67 @@ export default function LoginScreen() {
     }
   };
 
-  const handleSocialLogin = (provider: 'google' | 'apple') => {
+  const handleSocialLogin = async (provider: 'google' | 'apple') => {
+    console.log(`Starting ${provider} OAuth login...`);
     setIsLoading(true);
     setError("");
-    oauth.login({ provider } as LoginWithOAuthInput);
+    
+    if (provider === 'apple') {
+      try {
+        // Use native Apple Sign In - this will show the bottom sheet
+        const credential = await AppleAuthentication.signInAsync({
+          requestedScopes: [
+            AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+            AppleAuthentication.AppleAuthenticationScope.EMAIL,
+          ],
+        });
+        
+        console.log('Apple Sign In successful:', credential);
+        
+        // Handle the successful Apple Sign In
+        // You can store the credential or handle it as needed
+        console.log('Apple user ID:', credential.user);
+        console.log('Apple email:', credential.email);
+        console.log('Apple full name:', credential.fullName);
+        
+        // Navigate to the bet screen after successful Apple Sign In
+        console.log('Navigating to bet screen...');
+        router.push('/bet');
+        
+        // For now, just show success - you can integrate with Privy later if needed
+        setError(''); // Clear any previous errors
+        
+      } catch (err: any) {
+        console.log('Apple Sign In error:', err);
+        if (err.code === 'ERR_CANCELED') {
+          console.log('User cancelled Apple Sign In');
+        } else {
+          setError(`Apple Sign In error: ${err.message || JSON.stringify(err)}`);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      // Handle Google OAuth with existing approach
+      try {
+        await login({ loginMethods: ["email", "google", "apple"] });
+        console.log(`${provider} OAuth login initiated via Privy UI`);
+      } catch (err: any) {
+        console.log(`${provider} OAuth login error:`, err);
+        
+        // Fallback: Try with just the specific provider
+        try {
+          console.log(`Trying fallback for ${provider}...`);
+          await login({ loginMethods: [provider] });
+          console.log(`${provider} OAuth login successful via fallback`);
+        } catch (fallbackErr: any) {
+          console.log(`${provider} OAuth fallback error:`, fallbackErr);
+          setError(`${provider} OAuth error: ${fallbackErr.message || JSON.stringify(fallbackErr)}`);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    }
   };
 
   return (
@@ -86,7 +134,7 @@ export default function LoginScreen() {
         <TouchableOpacity 
           style={[styles.socialButton, styles.googleButton]}
           onPress={() => handleSocialLogin('google')}
-          disabled={oauth.state.status === "loading" || isLoading}
+          disabled={isLoading}
         >
           <Text style={styles.googleButtonText}>Continue with Google</Text>
         </TouchableOpacity>
@@ -95,7 +143,7 @@ export default function LoginScreen() {
         <TouchableOpacity 
           style={[styles.socialButton, styles.appleButton]}
           onPress={() => handleSocialLogin('apple')}
-          disabled={oauth.state.status === "loading" || isLoading}
+          disabled={isLoading}
         >
           <Text style={styles.appleButtonText}>Continue with Apple</Text>
         </TouchableOpacity>
